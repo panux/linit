@@ -6,7 +6,6 @@ export this=$(basename "$1")
 
 # Start and stop
 start() {
-    dependencies
     return 0
 }
 stop() {
@@ -61,7 +60,10 @@ dependencies() {
 . "$1"
 
 cmd=help
-for i in start stop restart reload boot shutdown disable enable depscan runlevel help fail; do
+if [ "$2" == start ]; then
+    dependencies
+done
+for i in stop restart reload boot shutdown disable enable depscan runlevel help fail; do
     if [ $i == "$2" ]; then
         cmd=$2
     fi
