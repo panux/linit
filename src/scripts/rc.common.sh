@@ -62,8 +62,8 @@ dependencies() {
 cmd=help
 if [ "$2" == start ]; then
     dependencies
-done
-for i in stop restart reload boot shutdown disable enable depscan runlevel help fail; do
+fi
+for i in start stop restart reload boot shutdown disable enable depscan runlevel help fail; do
     if [ $i == "$2" ]; then
         cmd=$2
     fi

@@ -5,3 +5,7 @@ depends() {
         dep $i
     done
 }
+
+start() {
+    echo booted
+}
