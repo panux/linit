@@ -1,7 +1,7 @@
 #!/etc/rc.common
 
 depends() {
-    dep printk
+    dep pre welcome
 }
 
 start() {

@@ -5,5 +5,5 @@ depends() {
 }
 
 start() {
-    echo Hello!
+    echo 123
 }

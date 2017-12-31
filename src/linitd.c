@@ -533,18 +533,23 @@ void cmd_start(struct conn *c, char *args) {
     } else {
         struct service *svc = findService(args);
         if(svc != NULL) {   //service already started
-            if(setNotify(svc, c)) {
-                fprintf(stderr, "Failed to set conn %d to be notified about %s\n", c->fd, args);\
+            if(!setNotify(svc, c)) {
+                fprintf(stderr, "Failed to set conn %d to be notified about %s\n", c->fd, args);
                 close_conn(c);
                 goto end;
             }
             //format: "notify %s %s", args, status
             char not[] = "notify ";
             char *status = statestr(svc->state);
-            char ntxt[strlen(not) + strlen(args) + strlen(status) + 1];
-            memcpy(ntxt, not, strlen(not));
-            memcpy(ntxt + strlen(not), args, strlen(args));
-            memcpy(ntxt + strlen(not) + strlen(args), status, strlen(status));
+            char ntxt[strlen(not) + strlen(args) + strlen(status) + 2];
+            char *nt = ntxt;
+            strcpy(nt, not);
+            nt += strlen(not);
+            strcpy(nt, args);
+            nt += strlen(args);
+            *nt = ' ';
+            nt++;
+            strcpy(nt, status);
             struct buf dat = { .dat = ntxt, .len = strlen(ntxt) + 1 };
             if(notify(c, svc, dat) != notify_success) {
                 fprintf(stderr, "Failed to notify conn %d about the state of %s\n", c->fd, args);
