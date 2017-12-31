@@ -1,9 +1,7 @@
 #!/etc/rc.common
 
 depends() {
-    for i in $(ls /etc/rc.d); do
-        dep $i
-    done
+    dep $(ls /etc/rc.d)
 }
 
 start() {
