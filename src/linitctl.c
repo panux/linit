@@ -3,6 +3,7 @@
 #include<stdlib.h>
 #include<errno.h>
 #include<string.h>
+#include<stdbool.h>
 #include<sys/socket.h>
 #include<sys/un.h>
 
@@ -127,6 +128,47 @@ void cmd_state(int argc, char **argv, FILE *stream) {
         exit(65);
     }
 }
+//command to stop a service
+void cmd_stop(int argc, char **argv, FILE *stream) {
+    if(argc != 1) {
+        fprintf(stderr, "[FATAL] Missing arguments\n");
+        exit(1);
+    }
+    char pre[] = "stop ";
+    size_t n = strlen(pre) + strlen(argv[0]) + 1;
+    char buf[n];
+    char *b = buf;
+    strcpy(b, pre);
+    b += strlen(pre);
+    strcpy(b, argv[0]);
+    if(fwrite(buf, n, 1, stream) != 1) {
+        fprintf(stderr, "[FATAL] Failed to write command\n");
+        exit(65);
+    }
+    //wait for completion
+    while(true) {
+        char *resp = rcvResp(stream);
+        char *stat = NULL;
+        int nspace = 0;
+        for(size_t i = 0; (resp[i] != '\0') && (nspace < 2); i++) {
+            if(resp[i] == ' ') {
+                stat = resp + i;
+                nspace++;
+            }
+        }
+        stat++;
+        if(nspace < 2) {
+            fprintf(stderr, "[FATAL] Bad response: \"%s\"\n", resp);
+            exit(65);
+        }
+        if(strcmp(stat, "stopped") == 0) {
+            free(resp);
+            return;
+        }
+        free(resp);
+    }
+}
+
 
 int main(int argc, char** argv) {
     if(argc < 2) {
@@ -136,6 +178,8 @@ int main(int argc, char** argv) {
     FILE* stream = connectToServer();
     if(strcmp(argv[1], "start") == 0) {
         cmd_start(argc - 2, argv + 2, stream);
+    } else if(strcmp(argv[1], "stop") == 0) {
+        cmd_stop(argc - 2, argv + 2, stream);
     } else if(strcmp(argv[1], "state") == 0) {
         cmd_state(argc - 2, argv + 2, stream);
     } else {

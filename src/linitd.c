@@ -616,8 +616,19 @@ void cmd_stop(struct conn *c, char *arg) {
             goto end;
         }
         c->tx = ntx;
+        if(c->txoff && (c->tx.len > 0)) {  //tx buffer was just populated
+            //enable write in epoll
+            struct epoll_event ev = {.events = EPOLLIN | EPOLLOUT, .data = {.ptr = &c->e}};
+            if(epoll_ctl(epollfd, EPOLL_CTL_MOD, c->fd, &ev) == -1) {   //failed to enable - close and forget
+                fprintf(stderr, "[ERROR] Failed to enable writing on conn %d\n", c->fd);
+                close_conn(c);
+            } else {
+                c->txoff = false;
+            }
+        }
         goto end;
     }
+    setNotify(svc, c);
     //stop service
     if(!runStop(arg)) {
         fprintf(stderr, "[ERROR] Failed to stop service %s: fork/exec error\n", arg);

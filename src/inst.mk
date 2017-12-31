@@ -2,7 +2,7 @@ all: install
 
 install: cmds initd rcd rccommon
 
-cmds: $(DESTDIR)/usr/bin/linitd $(DESTDIR)/usr/bin/linitctl $(DESTDIR)/usr/bin/linit-start
+cmds: $(DESTDIR)/usr/bin/linitd $(DESTDIR)/usr/bin/linitctl $(DESTDIR)/usr/bin/linit-start $(DESTDIR)/usr/bin/linit-stop
 
 $(DESTDIR)/usr/bin/linitd: linitd.o
 	install -D -m 0700 linitd.o $(DESTDIR)/usr/bin/linitd
@@ -10,6 +10,8 @@ $(DESTDIR)/usr/bin/linitctl: linitctl.o
 	install -D -m 0700 linitctl.o $(DESTDIR)/usr/bin/linitctl
 $(DESTDIR)/usr/bin/linit-start: linit-start.sh
 	install -D -m 0700 linit-start.sh $(DESTDIR)/usr/bin/linit-start
+$(DESTDIR)/usr/bin/linit-stop: linit-stop.sh
+	install -D -m 0700 linit-stop.sh $(DESTDIR)/usr/bin/linit-stop
 
 define initdscript
 $(DESTDIR)/etc/init.d/$(basename $(1)): scripts/init.d/$(1)
