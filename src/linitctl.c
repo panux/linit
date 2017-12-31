@@ -168,7 +168,36 @@ void cmd_stop(int argc, char **argv, FILE *stream) {
         free(resp);
     }
 }
-
+//run a command on a service file (basically enable and disable)
+void svcx(char *svc, char *op, FILE *stream) {
+    fclose(stream); //stream not necessary
+    //get path to initd file
+    char pre[] = "/etc/init.d/";
+    char svcp[strlen(pre) + strlen(svc) + 1];
+    strcpy(svcp, pre);
+    strcpy(svcp + strlen(pre), svc);
+    //exec
+    char *cmd[] = {svcp, op, NULL};
+    execv(svcp, cmd);
+    fprintf(stderr, "[FATAL] Exec error: %s\n", strerror(errno));
+    exit(65);
+}
+//command to enable a service
+void cmd_enable(int argc, char **argv, FILE *stream) {
+    if(argc != 1) {
+        fprintf(stderr, "[FATAL] Missing arguments\n");
+        exit(1);
+    }
+    svcx(argv[0], "enable", stream);
+}
+//command to disable a service
+void cmd_disable(int argc, char **argv, FILE *stream) {
+    if(argc != 1) {
+        fprintf(stderr, "[FATAL] Missing arguments\n");
+        exit(1);
+    }
+    svcx(argv[0], "disable", stream);
+}
 
 int main(int argc, char** argv) {
     if(argc < 2) {
@@ -180,6 +209,10 @@ int main(int argc, char** argv) {
         cmd_start(argc - 2, argv + 2, stream);
     } else if(strcmp(argv[1], "stop") == 0) {
         cmd_stop(argc - 2, argv + 2, stream);
+    } else if(strcmp(argv[1], "enable") == 0) {
+        cmd_enable(argc - 2, argv + 2, stream);
+    } else if(strcmp(argv[1], "disable") == 0) {
+        cmd_disable(argc - 2, argv + 2, stream);
     } else if(strcmp(argv[1], "state") == 0) {
         cmd_state(argc - 2, argv + 2, stream);
     } else {
