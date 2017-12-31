@@ -22,6 +22,9 @@ void addSock(int fd);
 void epoll_cycle();
 int backlog = 64;
 
+//epoll fd
+int epollfd;
+
 //forward declare structs
 typedef uint32_t refcnt;
 struct conn;
@@ -75,6 +78,8 @@ typedef enum{
     service_status_stopping,    //service stopping
     service_status_stopped      //service stopped
 } servicestate;
+
+void close_conn(struct conn *c);
 
 //get a string representing a state
 char *statestr(servicestate state) {
@@ -130,6 +135,16 @@ enum{ notify_fail, notify_success, notify_gone } notify(struct conn *c, struct s
     memcpy(ndat + c->tx.len, msg.dat, msg.len);
     c->tx.dat = ndat;
     c->tx.len += msg.len;
+    if(c->txoff && (c->tx.len > 0)) {  //tx buffer was just populated
+        //enable write in epoll
+        struct epoll_event ev = {.events = EPOLLIN | EPOLLOUT, .data = {.ptr = &c->e}};
+        if(epoll_ctl(epollfd, EPOLL_CTL_MOD, c->fd, &ev) == -1) {   //failed to enable - close and forget
+            fprintf(stderr, "[ERROR] Failed to enable writing on conn %d\n", c->fd);
+            close_conn(c);
+        } else {
+            c->txoff = false;
+        }
+    }
     return notify_success;
 }
 //run on a state change to notify all associated conns of the change
@@ -218,8 +233,10 @@ void rmService(char* name) {
 bool readBuf(struct buf *b, int fd) {  //read data from fd into the buffer
     byte dat[1024];
     size_t n = read(fd, dat, 1024);
-    if(n < 1) {
+    if(n < 0) {
         return false;
+    } else if(n == 0) {
+        return true;
     }
     byte* nd = arralloc(byte, n + b->len);
     if(nd == NULL) {
@@ -264,8 +281,7 @@ fail:
     exit(65);
 }
 
-//epoll fd
-int epollfd;
+
 //epoll-associated data
 void addSock(int fd) {  //add a socket to epoll
     printf("Sock: %d\n", fd);
@@ -631,6 +647,7 @@ void cmd_state(struct conn *c, char *args) {
     servicestate s = service_status_null;
     if(streq(states, "running")) {
         s = service_status_running;
+        printf("[INFO] Finished %s\n", sname);
     } else if(streq(states, "stopped")) {
         s = service_status_stopped;
     } else {

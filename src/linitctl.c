@@ -94,6 +94,7 @@ void cmd_start(int argc, char **argv, FILE *stream) {
                 nspace++;
             }
         }
+        stat++;
         if(nspace < 2) {
             fprintf(stderr, "[FATAL] Bad response: \"%s\"\n", resp);
             exit(65);
