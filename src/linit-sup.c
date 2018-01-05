@@ -137,6 +137,7 @@ int main(int argc, char **argv) {
                 fprintf(stderr, "Bad response: %s\n", resp);
                 return 65;
             }
+            FILE* pid_file = fopen(pidf, "w");
             switch(childpid = fork()) {
             case -1:
                 perror("Fork failed");
@@ -163,6 +164,8 @@ int main(int argc, char **argv) {
                 }
                 return 65;  //should never be run
             }
+            fprintf(pid_file, "%d\n", childpid);
+            fclose(pid_file);
             int code = 65;
             waitpid(childpid, &code, 0);
             if(code == 0) {
