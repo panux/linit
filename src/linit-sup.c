@@ -119,24 +119,6 @@ int main(int argc, char **argv) {
                     return 65;
                 }
             }
-            if(fprintf(supconn, "*%d%s\n", (int)childpid, name) == -1) {
-                fprintf(stderr, "Failed to write to linit-supd connection: %s\n", strerror(errno));
-                return 65;
-            }
-            if(fflush(supconn) != 0) {
-                fprintf(stderr, "Failed to flush linit-supd connection: %s\n", strerror(errno));
-                return 65;
-            }
-            char resp[80];
-            if(fgets(resp, 80, supconn) == NULL) {
-                fprintf(stderr, "Failed to get response from linit-supd connection: %s\n", strerror(errno));
-                return 65;
-            }
-            fclose(supconn);
-            if(!streq(resp, "ok\n")) {
-                fprintf(stderr, "Bad response: %s\n", resp);
-                return 65;
-            }
             FILE* pid_file = fopen(pidf, "w");
             switch(childpid = fork()) {
             case -1:
@@ -163,6 +145,24 @@ int main(int argc, char **argv) {
                     return 65;
                 }
                 return 65;  //should never be run
+            }
+            if(fprintf(supconn, "*%d%s\n", (int)childpid, name) == -1) {
+                fprintf(stderr, "Failed to write to linit-supd connection: %s\n", strerror(errno));
+                return 65;
+            }
+            if(fflush(supconn) != 0) {
+                fprintf(stderr, "Failed to flush linit-supd connection: %s\n", strerror(errno));
+                return 65;
+            }
+            char resp[80];
+            if(fgets(resp, 80, supconn) == NULL) {
+                fprintf(stderr, "Failed to get response from linit-supd connection: %s\n", strerror(errno));
+                return 65;
+            }
+            fclose(supconn);
+            if(!streq(resp, "ok\n")) {
+                fprintf(stderr, "Bad response: %s\n", resp);
+                return 65;
             }
             fprintf(pid_file, "%d\n", childpid);
             fclose(pid_file);

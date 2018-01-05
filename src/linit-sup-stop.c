@@ -8,7 +8,7 @@
 
 #define streq(x, y) (strcmp((x) , (y)) == 0)
 int main(int argc, char **argv) {
-    if(argc != 2) {
+    if(argc != 3) {
         perror("Missing args\n");
         return 1;
     }
@@ -30,7 +30,7 @@ int main(int argc, char **argv) {
         return 65;
     }
     //write command
-    if(fprintf(supconn, "^%s\n", argv[1]) == -1) {
+    if(fprintf(supconn, "^%d%s\n", atoi(argv[1]), argv[2]) == -1) {
         fprintf(stderr, "Failed to write to linit-supd connection: %s\n", strerror(errno));
         return 65;
     }

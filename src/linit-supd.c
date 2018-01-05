@@ -116,6 +116,7 @@ int main(int argc, char **argv) {
         }
         char cmd = buf[0];
         char *arg = buf + 1;
+        printf("Recieved %s\n", buf);
         switch(cmd) {
         case '*':   //new supervision
             {
@@ -144,6 +145,8 @@ int main(int argc, char **argv) {
                 }
                 *name = '\0';
                 link->pid = atoi(pidnum);
+                printf("Name: %s PID: %d\n", link->name, (int)link->pid);
+                *chainend = link;
             }
             break;
         case '^':   //terminate & delete supervision
@@ -152,7 +155,7 @@ int main(int argc, char **argv) {
                 char *name = arg;
                 while(isdigit(*name)) { name++; }
                 if(name == arg) {
-                    perror("[ERROR] Command missing process ID\n");
+                    perror("[ERROR] Command missing signal number\n");
                     fclose(stream);
                     continue;
                 }
@@ -174,10 +177,7 @@ int main(int argc, char **argv) {
                     continue;
                 }
                 //wait for exit
-                if(waitpid(pid, NULL, 0) == -1) {
-                    fprintf(stderr, "[ERROR] Failed to wait: %s\n", strerror(errno));
-                    //we tried - good enough
-                }
+                waitpid(pid, NULL, 0);  //note: error ignored because race condition
                 //remove from chain
                 struct chain *c = *chainpos;
                 *chainpos = (**chainpos).next;

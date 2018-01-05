@@ -5,5 +5,9 @@ depends() {
 }
 
 start() {
-    linit-sup --name sleep -- /bin/sleep 10
+    linit-sup --name sleep -- /bin/sleep 60
+}
+
+stop() {
+    linit-sup-stop 3 sleep
 }
