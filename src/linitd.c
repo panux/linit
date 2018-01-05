@@ -666,6 +666,8 @@ void cmd_state(struct conn *c, char *args) {
         printf("[INFO] Finished %s\n", sname);
     } else if(streq(states, "stopped")) {
         s = service_status_stopped;
+    } else if(streq(states, "failed")) {
+        s = service_status_fail;
     } else {
         goto bad;
     }
@@ -683,6 +685,7 @@ void cmd_state(struct conn *c, char *args) {
         exit(65);
     }
     if(s == service_status_stopped) {   //service has stopped - clean it up
+        printf("[INFO] Service %s stopped\n", svc->name);
         for(size_t i = 0; i < svc->notify_n; i++) {
             deref(svc->notify[i]);
         }

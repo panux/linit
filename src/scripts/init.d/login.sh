@@ -1,9 +1,13 @@
 #!/etc/rc.common
 
 depends() {
-    dep pre welcome
+    dep pre welcome linit-supd
 }
 
 start() {
-    (sleep 2; while true; do clear; getty 115200 /dev/console; done) &
+    linit-sup --name login -- /bin/sh -c 'sleep 2; while true; do clear; getty 115200 /dev/console; done'
+}
+
+stop() {
+    linit-sup-stop login
 }
